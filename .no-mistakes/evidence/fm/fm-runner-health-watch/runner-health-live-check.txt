@@ -1,0 +1,14 @@
+live runner-health evidence (2026-08-26T20:43:36Z)
+==========================================
+read-only gh-axi runner state:
+  [1]:
+    - busy: false
+      labels[4]: self-hosted,macOS,ARM64,toolroll-mac
+      name: toolroll-mac
+      status: online
+shipped check result:
+  exit=0
+  elapsed_seconds=0
+  stdout=<empty>
+  stderr=<empty>
+  record=absent (healthy poll does not create an outage record)

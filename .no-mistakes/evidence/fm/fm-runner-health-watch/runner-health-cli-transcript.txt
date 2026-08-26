@@ -1,0 +1,14 @@
+runner-health CLI evidence
+=========================
+first offline poll:
+  runner health: connectwithclayton/toolroll runner label toolroll-mac is offline
+same outage poll:
+  <silent>
+recovery poll:
+  <silent>
+outage after recovery:
+  runner health: connectwithclayton/toolroll runner label toolroll-mac is offline
+persisted state:
+  fm-runner-health-v1
+  target=connectwithclayton/toolroll@toolroll-mac
+  reported=offline
