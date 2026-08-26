@@ -1,14 +1,14 @@
-runner-health CLI evidence
-=========================
-first offline poll:
-  runner health: connectwithclayton/toolroll runner label toolroll-mac is offline
-same outage poll:
-  <silent>
-recovery poll:
-  <silent>
-outage after recovery:
-  runner health: connectwithclayton/toolroll runner label toolroll-mac is offline
-persisted state:
-  fm-runner-health-v1
-  target=connectwithclayton/toolroll@toolroll-mac
-  reported=offline
+Runner-health CLI transcript (synthetic gh-axi API fixture; 2026-08-26 UTC)
+$ check offline runner (first outage poll)
+runner health: connectwithclayton/toolroll runner label toolroll-mac is offline
+$ check offline runner (repeat poll; expected no output)
+[no output]
+$ check online runner (recovery; expected no output)
+[no output]
+$ check offline runner after recovery (new outage wake)
+runner health: connectwithclayton/toolroll runner label toolroll-mac is offline
+$ check malformed envelope (expected no output; record remains unchanged)
+[no output]
+$ check with symlinked state path (expected loud refusal)
+fm-runner-health-check: refusing state path /tmp/fm-runner-health-evidence.EwU52J/home/state: a symlink; a real private directory is required
+exit=1
