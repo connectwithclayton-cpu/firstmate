@@ -306,9 +306,8 @@ The composer-classification record below observes the same gate from the other s
 
 ## Composer classification matrix
 
-Codex 0.154.0 with gpt-6-astra high was rechecked on 2026-09-10 in a guarded Herdr 0.8.0 lab.
-A PTY relay supplied OSC 10/11 foreground/background replies so the real Codex renderer enabled its composer animation.
-The prepared-lab mode of `tests/fm-composer-matrix-live-e2e.test.sh` refreshes the two real surfaces without launching or closing panes:
+The retained 2026-09-10 command below re-read two already-prepared panes through the Herdr lab helper and classified their visible surfaces without launching or closing panes.
+The PTY-relay and pane-preparation commands were not captured, so this record does not independently reproduce the OSC 10/11 animation setup or bind those panes to the reported Codex model and version:
 
 ```sh
 FM_COMPOSER_CODEX_LIVE=1 FM_COMPOSER_CODEX_LAB_SESSION="$HERDR_LAB_SESSION" FM_COMPOSER_CODEX_LAB_IDLE="$IDLE_PANE" FM_COMPOSER_CODEX_LAB_TYPED="$HIGH_PANE" HERDR_LAB_HELPER="$HERDR_LAB_HELPER" bin/fm-test-run.sh tests/fm-composer-matrix-live-e2e.test.sh
