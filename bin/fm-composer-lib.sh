@@ -203,7 +203,9 @@ fm_composer_strip_ghost() {
   # between two background-painted padding rows.
   # Codex paints typed input instead of that placeholder, including typed
   # braille; colour alone never enables this additional de-emphasis rule.
-  LC_ALL=C awk -v codex_idle="${1:-}" -v lumamax="${FM_COMPOSER_GHOST_LUMA_MAX:-128}" '
+  LC_ALL=C awk -v codex_idle="${1:-}" \
+    -v codex_prompt="$FM_COMPOSER_CODEX_PROMPT_GLYPH" \
+    -v lumamax="${FM_COMPOSER_GHOST_LUMA_MAX:-128}" '
     function sgr_code(v, b) {
       b = v
       sub(/:.*/, "", b)
@@ -305,7 +307,7 @@ fm_composer_strip_ghost() {
       if (codex_idle == "codex-idle") {
         gsub(/^[ \t]+|[ \t]+$/, "", out)
         if (NR == 2) {
-          if (out != "›" || ghost != "Ask Codex to do anything") invalid = 1
+          if (out != codex_prompt || ghost != "Ask Codex to do anything") invalid = 1
         } else if (out != "" || ghost != "") invalid = 1
       } else print out
     }
@@ -419,7 +421,8 @@ fm_busy_lines_match() {  # [harness]
 # a dead-shell prompt and must never read `empty`. Newline-separated and
 # consumed by `read` rather than word splitting, so `$`, `%`, and `#` stay
 # literal and no entry is ever exposed to pathname expansion.
-FM_COMPOSER_AGENT_PROMPT_GLYPHS=$(printf '%s\n' '❯' '›' '⟩' '→')
+FM_COMPOSER_CODEX_PROMPT_GLYPH='›'
+FM_COMPOSER_AGENT_PROMPT_GLYPHS=$(printf '%s\n' '❯' "$FM_COMPOSER_CODEX_PROMPT_GLYPH" '⟩' '→')
 FM_COMPOSER_SHELL_PROMPT_GLYPHS=$(printf '%s\n' '>' '$' '%' '#')
 
 # The ONE fleet-wide idle-placeholder set: composer text a harness renders in
@@ -1297,9 +1300,10 @@ EOF
     local g=$FM_COMPOSER_SCAN_BARE_ROW
     if printf '%s\n' "$screen" | sed -n "$((g)), $((g + 2))p" |
       fm_composer_strip_ghost codex-idle >/dev/null; then
-      screen=$(printf '%s\n' "$screen" | awk -v g="$g" '
+      screen=$(printf '%s\n' "$screen" | awk \
+        -v g="$g" -v codex_prompt="$FM_COMPOSER_CODEX_PROMPT_GLYPH" '
         NR == g || NR == g + 2 { print " "; next }
-        NR == g + 1 { print "›"; next }
+        NR == g + 1 { print codex_prompt; next }
         { print }
       ')
       plain=$(printf '%s\n' "$screen" | fm_composer_strip_ansi)
