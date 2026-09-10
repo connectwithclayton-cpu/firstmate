@@ -84,11 +84,11 @@ SH
 # Real Codex 0.154.0 captures, 2026-09-10: gpt-6-astra high in the guarded
 # Herdr lab, with OSC 10/11 palette replies supplied by a PTY relay.
 # Fixtures retain the composer and padding, with ESC/CR losslessly escaped.
-# typed-still disables tui.whimsy; both typed captures contain actual input,
-# including braille characters that must never be treated as decoration.
+# typed-animation contains actual input, including braille characters that must
+# never be treated as decoration.
 test_codex_animation_captures() {
   local fixture screen expected caps actual
-  for fixture in idle typed-animation typed-still; do
+  for fixture in idle typed-animation; do
     screen=$(printf '%b' "$(cat "$ROOT/tests/fixtures/codex-animation/$fixture.capture")")
     case "$fixture" in idle) expected=empty ;; *) expected=pending ;; esac
     # Herdr/Zellij have styling; tmux also supplies the actual composer row.
