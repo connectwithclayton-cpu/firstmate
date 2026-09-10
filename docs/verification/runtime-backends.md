@@ -347,6 +347,25 @@ The composer-classification record below observes the same gate from the other s
 
 ## Composer classification matrix
 
+Codex 0.154.0 with gpt-6-astra high was rechecked on 2026-09-10 in a guarded Herdr 0.8.0 lab.
+A PTY relay supplied OSC 10/11 foreground/background replies so the real Codex renderer enabled its composer animation; explicit Herdr agent registration covered the relay for the delivery check.
+The prepared-lab mode of `tests/fm-composer-matrix-live-e2e.test.sh` refreshes the three real surfaces without launching or closing panes:
+
+```sh
+FM_COMPOSER_CODEX_LIVE=1 FM_COMPOSER_CODEX_LAB_SESSION="$HERDR_LAB_SESSION" FM_COMPOSER_CODEX_LAB_IDLE="$IDLE_PANE" FM_COMPOSER_CODEX_LAB_TYPED="$HIGH_PANE" FM_COMPOSER_CODEX_LAB_STILL="$STILL_PANE" HERDR_LAB_HELPER="$HERDR_LAB_HELPER" bin/fm-test-run.sh tests/fm-composer-matrix-live-e2e.test.sh
+```
+
+```text
+ok - codex-cli 0.154.0: real Codex IDLE composer classifies empty
+ok - codex-cli 0.154.0: real Codex TYPED composer classifies pending
+ok - codex-cli 0.154.0: real Codex STILL composer classifies pending
+```
+
+A real `fm-send.sh probe` to the animated empty composer reached Codex and elicited `DOORBELL_RECEIVED` after it read the durable inbox.
+With a real draft containing braille, the same command reported `doorbell skipped (composer visibly holds pending text)` and left the draft intact.
+The portable capture regression is `tests/fm-composer-ghost.test.sh`; removing the classifier change fails with `Codex idle: expected empty, got pending`.
+This refresh covers Codex animation only; the historical multi-harness matrix below retains its original version bounds.
+
 The shared composer classifier (`bin/fm-composer-lib.sh`, `fm_composer_classify_screen`) owns every composer shape fleet-wide; each backend contributes only a capture and a capability descriptor.
 The live half of that guarantee was verified on 2026-08-10 from an already-trusted checkout at the branch's final validated head, against every installed harness then covered by the empty-composer matrix on tmux 3.6a, macOS arm64, on an isolated private socket, with no prompt submitted to any harness.
 An earlier untrusted-worktree run left Claude, Grok, and Muse unverified because the guard treats first-launch trust dialogs as an unreadable-composer state and never confirms them; this trusted-checkout rerun supersedes those missing results.

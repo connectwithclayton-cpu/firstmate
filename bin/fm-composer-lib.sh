@@ -170,7 +170,7 @@ fm_composer_normalize_trim_var() {  # <varname>
   printf -v "$__fmnt_name" '%s' "$__fmnt_text"
 }
 
-# fm_composer_strip_ghost: the ONE fleet-wide ANSI-aware extractor of "real typed
+# fm_composer_strip_ghost [codex-idle]: the ONE fleet-wide ANSI-aware extractor of "real typed
 # content" from a captured, styled composer row. Reads the styled line on stdin
 # (from `tmux capture-pane -e`, `herdr pane read --format ansi`, or
 # `zellij action dump-screen --ansi`) and prints the
@@ -199,7 +199,11 @@ fm_composer_normalize_trim_var() {  # <varname>
 # LC_ALL=C makes awk walk bytes, so multibyte glyphs (e.g. ❯) and de-emphasised
 # runs alike pass through or drop intact without locale-dependent classes.
 fm_composer_strip_ghost() {
-  LC_ALL=C awk -v lumamax="${FM_COMPOSER_GHOST_LUMA_MAX:-128}" '
+  # codex-idle accepts only the three-row empty composer: a dim placeholder
+  # between two background-painted padding rows.
+  # Codex paints typed input instead of that placeholder, including typed
+  # braille; colour alone never enables this additional de-emphasis rule.
+  LC_ALL=C awk -v codex_idle="${1:-}" -v lumamax="${FM_COMPOSER_GHOST_LUMA_MAX:-128}" '
     function sgr_code(v, b) {
       b = v
       sub(/:.*/, "", b)
@@ -232,7 +236,8 @@ fm_composer_strip_ghost() {
       return ((299*r + 587*g + 114*b) / 1000 < lumamax) ? 1 : 0
     }
     {
-      line = $0; out = ""; dim = 0; darkfg = 0; n = length(line); i = 1
+      line = $0; if (codex_idle == "codex-idle") sub(/\r$/, "", line)
+      out = ""; dim = 0; darkfg = 0; rgbfg = 0; bg = ""; ghost = ""; n = length(line); i = 1
       while (i <= n) {
         c = substr(line, i, 1)
         if (c == "\033") {            # ESC: consume a CSI ... final-byte sequence
@@ -250,26 +255,52 @@ fm_composer_strip_ghost() {
               for (p = 1; p <= k; p++) {
                 v = a[p]; code = sgr_code(v)
                 if (code == "38") {
+                  rgbfg = (a[p + 1] == "2" && p + 4 <= k)
                   darkfg = fg38_is_dark(a, p, k, lumamax)
                   p = skip_color_payload(a, p, k)
-                } else if (code == "48" || code == "58") {
+                } else if (code == "48") {
+                  if (a[p + 1] == "2" && p + 4 <= k)
+                    bg = a[p + 2] "," a[p + 3] "," a[p + 4]
+                  else bg = ""
+                  p = skip_color_payload(a, p, k)
+                } else if (code == "58") {
                   p = skip_color_payload(a, p, k)
                 } else if (code == "2") dim = 1
-                else if (code == "0") { dim = 0; darkfg = 0 }
+                else if (code == "0") { dim = 0; darkfg = 0; rgbfg = 0; bg = "" }
                 else if (code == "22") dim = 0
-                else if (code == "39") darkfg = 0
-                else if (code + 0 >= 30 && code + 0 <= 37) darkfg = 0
-                else if (code + 0 >= 90 && code + 0 <= 97) darkfg = 0
+                else if (code == "39") { darkfg = 0; rgbfg = 0 }
+                else if (code == "49") bg = ""
+                else if (code + 0 >= 30 && code + 0 <= 37) { darkfg = 0; rgbfg = 0 }
+                else if (code + 0 >= 90 && code + 0 <= 97) { darkfg = 0; rgbfg = 0 }
               }
             }
             if (j <= n) { i = j + 1; continue }
           }
           i = i + 1; continue          # lone/other ESC: drop the ESC byte only
         }
-        if (dim == 0 && darkfg == 0) out = out c   # keep only non-de-emphasised bytes
+        if (codex_idle == "codex-idle") {
+          # Every cell must share the placeholder background; the padding must
+          # contain only coloured decoration, never normal-intensity input.
+          if (bg == "") invalid = 1
+          if (background == "") background = bg
+          if (bg != background) invalid = 1
+          if (dim) ghost = ghost c
+          if (!dim && !rgbfg) out = out c
+        } else if (dim == 0 && darkfg == 0) out = out c
         i++
       }
-      print out
+      if (codex_idle == "codex-idle") {
+        gsub(/^[ \t]+|[ \t]+$/, "", out)
+        if (NR == 2) {
+          if (out != "›" || ghost != "Ask Codex to do anything") invalid = 1
+        } else if (out != "" || ghost != "") invalid = 1
+      } else print out
+    }
+    END {
+      if (codex_idle == "codex-idle") {
+        if (NR != 3 || invalid) exit 1
+        print " \n›\n "
+      }
     }
   '
 }
@@ -1247,6 +1278,23 @@ EOF
   fi
   plain=$(printf '%s\n' "$screen" | fm_composer_strip_ansi)
   _fm_composer_scan_screen "$plain" "$cy"
+  # Strip ambient decoration only after the extractor proves Codex is showing
+  # its empty placeholder, then repeat ordinary structural selection on that
+  # same capture so a later modal or stale composer still cannot win.
+  if [ "$styled" = 1 ] && [ "$FM_COMPOSER_SCAN_BARE_ROW" -ge 1 ]; then
+    local g=$FM_COMPOSER_SCAN_BARE_ROW candidate
+    candidate=$(printf '%s\n' "$screen" | sed -n "$((g)), $((g + 2))p" |
+      fm_composer_strip_ghost codex-idle) || candidate=''
+    if [ -n "$candidate" ]; then
+      screen=$(printf '%s\n' "$screen" | awk -v g="$g" '
+        NR == g || NR == g + 2 { print " "; next }
+        NR == g + 1 { print "›"; next }
+        { print }
+      ')
+      plain=$(printf '%s\n' "$screen" | fm_composer_strip_ansi)
+      _fm_composer_scan_screen "$plain" "$cy"
+    fi
+  fi
   if [ -n "$cy" ]; then
     # Cursor mode (tmux): the shape CONTAINING the cursor is the composer.
     if [ "$FM_COMPOSER_SCAN_UNSAFE" = 1 ]; then
