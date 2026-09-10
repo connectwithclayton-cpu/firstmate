@@ -360,6 +360,30 @@ ok - codex-cli 0.154.0: real Codex TYPED composer classifies pending
 ```
 
 The portable capture regression is `tests/fm-composer-ghost.test.sh`; removing the classifier change fails with `Codex idle: expected empty, got pending`.
+A separate plain-draft mutation on 2026-09-10 deleted only `preserve this draft` from `test_codex_plain_draft_is_pending`, ran the focused suite, restored those words, and reran it.
+
+Deletion arm:
+
+```sh
+test_output=$(tests/fm-composer-ghost.test.sh 2>&1); test_rc=$?; printf '%s\n' "$test_output" | sed -n '/Codex plain typed draft/p'; printf 'suite exit %s\n' "$test_rc"
+```
+
+```text
+not ok - Codex plain typed draft: expected pending, got 'empty'
+suite exit 1
+```
+
+Restored arm:
+
+```sh
+test_output=$(tests/fm-composer-ghost.test.sh 2>&1); test_rc=$?; printf '%s\n' "$test_output" | sed -n '/Codex plain typed draft/p'; printf 'suite exit %s\n' "$test_rc"
+```
+
+```text
+ok - Codex plain typed draft remains pending
+suite exit 0
+```
+
 This refresh covers Codex animation only; the historical multi-harness matrix below retains its original version bounds.
 
 The shared composer classifier (`bin/fm-composer-lib.sh`, `fm_composer_classify_screen`) owns every composer shape fleet-wide; each backend contributes only a capture and a capability descriptor.
