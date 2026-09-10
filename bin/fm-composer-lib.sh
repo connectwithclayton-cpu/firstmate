@@ -235,6 +235,14 @@ fm_composer_strip_ghost() {
       r = a[p + 2] + 0; g = a[p + 3] + 0; b = a[p + 4] + 0
       return ((299*r + 587*g + 114*b) / 1000 < lumamax) ? 1 : 0
     }
+    function codex_idle_decoration_width(line, pos, n, rgbfg, bg,   glyph) {
+      if (substr(line, pos, 1) == " " && bg != "") return 1
+      if (!rgbfg || bg == "" || pos + 2 > n) return 0
+      glyph = substr(line, pos, 3)
+      if (glyph == "⠁" || glyph == "⠂" || glyph == "⠄" || glyph == "⠈" ||
+          glyph == "⠐" || glyph == "⠠" || glyph == "⡀" || glyph == "⢀") return 3
+      return 0
+    }
     {
       line = $0; if (codex_idle == "codex-idle") sub(/\r$/, "", line)
       out = ""; dim = 0; darkfg = 0; rgbfg = 0; bg = ""; ghost = ""; n = length(line); i = 1
@@ -284,8 +292,13 @@ fm_composer_strip_ghost() {
           if (bg == "") invalid = 1
           if (background == "") background = bg
           if (bg != background) invalid = 1
-          if (dim) ghost = ghost c
-          if (!dim && !rgbfg) out = out c
+          if (dim) {
+            ghost = ghost c
+          } else {
+            decoration = codex_idle_decoration_width(line, i, n, rgbfg, bg)
+            if (decoration > 0) i += decoration - 1
+            else out = out c
+          }
         } else if (dim == 0 && darkfg == 0) out = out c
         i++
       }
@@ -299,7 +312,6 @@ fm_composer_strip_ghost() {
     END {
       if (codex_idle == "codex-idle") {
         if (NR != 3 || invalid) exit 1
-        print " \n›\n "
       }
     }
   '
@@ -1282,10 +1294,9 @@ EOF
   # its empty placeholder, then repeat ordinary structural selection on that
   # same capture so a later modal or stale composer still cannot win.
   if [ "$styled" = 1 ] && [ "$FM_COMPOSER_SCAN_BARE_ROW" -ge 1 ]; then
-    local g=$FM_COMPOSER_SCAN_BARE_ROW candidate
-    candidate=$(printf '%s\n' "$screen" | sed -n "$((g)), $((g + 2))p" |
-      fm_composer_strip_ghost codex-idle) || candidate=''
-    if [ -n "$candidate" ]; then
+    local g=$FM_COMPOSER_SCAN_BARE_ROW
+    if printf '%s\n' "$screen" | sed -n "$((g)), $((g + 2))p" |
+      fm_composer_strip_ghost codex-idle >/dev/null; then
       screen=$(printf '%s\n' "$screen" | awk -v g="$g" '
         NR == g || NR == g + 2 { print " "; next }
         NR == g + 1 { print "›"; next }
