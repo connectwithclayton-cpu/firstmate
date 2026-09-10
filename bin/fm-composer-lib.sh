@@ -170,7 +170,7 @@ fm_composer_normalize_trim_var() {  # <varname>
   printf -v "$__fmnt_name" '%s' "$__fmnt_text"
 }
 
-# fm_composer_strip_ghost [codex-idle]: the ONE fleet-wide ANSI-aware extractor of "real typed
+# fm_composer_strip_ghost [codex-animation]: the ONE fleet-wide ANSI-aware extractor of "real typed
 # content" from a captured, styled composer row. Reads the styled line on stdin
 # (from `tmux capture-pane -e`, `herdr pane read --format ansi`, or
 # `zellij action dump-screen --ansi`) and prints the
@@ -199,11 +199,9 @@ fm_composer_normalize_trim_var() {  # <varname>
 # LC_ALL=C makes awk walk bytes, so multibyte glyphs (e.g. ❯) and de-emphasised
 # runs alike pass through or drop intact without locale-dependent classes.
 fm_composer_strip_ghost() {
-  # codex-idle accepts only the three-row empty composer: a dim placeholder
-  # between two background-painted padding rows.
-  # Codex paints typed input instead of that placeholder, including typed
-  # braille; colour alone never enables this additional de-emphasis rule.
-  LC_ALL=C awk -v codex_idle="${1:-}" \
+  # codex-animation accepts a three-row Codex composer with background-painted
+  # padding and keeps normally rendered input, including typed braille.
+  LC_ALL=C awk -v codex_animation="${1:-}" \
     -v codex_prompt="$FM_COMPOSER_CODEX_PROMPT_GLYPH" \
     -v lumamax="${FM_COMPOSER_GHOST_LUMA_MAX:-128}" '
     function sgr_code(v, b) {
@@ -237,7 +235,7 @@ fm_composer_strip_ghost() {
       r = a[p + 2] + 0; g = a[p + 3] + 0; b = a[p + 4] + 0
       return ((299*r + 587*g + 114*b) / 1000 < lumamax) ? 1 : 0
     }
-    function codex_idle_decoration_width(line, pos, n, rgbfg, bg,   glyph) {
+    function codex_animation_decoration_width(line, pos, n, rgbfg, bg,   glyph) {
       if (substr(line, pos, 1) == " " && bg != "") return 1
       if (!rgbfg || bg == "" || pos + 2 > n) return 0
       glyph = substr(line, pos, 3)
@@ -246,7 +244,7 @@ fm_composer_strip_ghost() {
       return 0
     }
     {
-      line = $0; if (codex_idle == "codex-idle") sub(/\r$/, "", line)
+      line = $0; if (codex_animation == "codex-animation") sub(/\r$/, "", line)
       out = ""; dim = 0; darkfg = 0; rgbfg = 0; bg = ""; ghost = ""; n = length(line); i = 1
       while (i <= n) {
         c = substr(line, i, 1)
@@ -288,7 +286,7 @@ fm_composer_strip_ghost() {
           }
           i = i + 1; continue          # lone/other ESC: drop the ESC byte only
         }
-        if (codex_idle == "codex-idle") {
+        if (codex_animation == "codex-animation") {
           # Every cell must share the placeholder background; the padding must
           # contain only coloured decoration, never normal-intensity input.
           if (bg == "") invalid = 1
@@ -297,23 +295,35 @@ fm_composer_strip_ghost() {
           if (dim) {
             ghost = ghost c
           } else {
-            decoration = codex_idle_decoration_width(line, i, n, rgbfg, bg)
-            if (decoration > 0) i += decoration - 1
+            decoration = codex_animation_decoration_width(line, i, n, rgbfg, bg)
+            if (decoration > 0) {
+              if (c == " ") out = out c
+              i += decoration - 1
+            }
             else out = out c
           }
         } else if (dim == 0 && darkfg == 0) out = out c
         i++
       }
-      if (codex_idle == "codex-idle") {
+      if (codex_animation == "codex-animation") {
         gsub(/^[ \t]+|[ \t]+$/, "", out)
+        clean[NR] = out
         if (NR == 2) {
-          if (out != codex_prompt || ghost != "Ask Codex to do anything") invalid = 1
+          if (substr(out, 1, length(codex_prompt)) != codex_prompt) invalid = 1
+          real = substr(out, length(codex_prompt) + 1)
+          gsub(/^[ \t]+|[ \t]+$/, "", real)
+          if (ghost == "Ask Codex to do anything") placeholder = 1
+          else if (ghost != "") invalid = 1
+          if (!placeholder && real == "") invalid = 1
         } else if (out != "" || ghost != "") invalid = 1
       } else print out
     }
     END {
-      if (codex_idle == "codex-idle") {
+      if (codex_animation == "codex-animation") {
         if (NR != 3 || invalid) exit 1
+        print " "
+        print clean[2]
+        print " "
       }
     }
   '
@@ -1199,6 +1209,26 @@ _fm_composer_select_cursorless() {
   [ -n "$FM_COMPOSER_SELECTED_KIND" ]
 }
 
+_fm_composer_normalize_codex_animation_screen_var() {  # <varname> <styled> [cursor-row]
+  local __fmc_name=$1 __fmc_styled=$2 __fmc_cy=${3:-} __fmc_screen=${!1}
+  local __fmc_plain __fmc_g __fmc_candidate
+  [ "$__fmc_styled" = 1 ] || return 0
+  __fmc_plain=$(printf '%s\n' "$__fmc_screen" | fm_composer_strip_ansi)
+  _fm_composer_scan_screen "$__fmc_plain" "$__fmc_cy"
+  [ "$FM_COMPOSER_SCAN_BARE_ROW" -ge 1 ] || return 0
+  __fmc_g=$FM_COMPOSER_SCAN_BARE_ROW
+  __fmc_candidate=$(printf '%s\n' "$__fmc_screen" | sed -n "$((__fmc_g)), $((__fmc_g + 2))p" |
+    fm_composer_strip_ghost codex-animation) || return 0
+  __fmc_screen=$(
+    if [ "$__fmc_g" -gt 1 ]; then
+      printf '%s\n' "$__fmc_screen" | sed -n "1,$((__fmc_g - 1))p"
+    fi
+    printf '%s\n' "$__fmc_candidate"
+    printf '%s\n' "$__fmc_screen" | sed -n "$((__fmc_g + 3)),\$p"
+  )
+  printf -v "$__fmc_name" '%s' "$__fmc_screen"
+}
+
 fm_composer_extract_selected_content() {  # <caps> <screen>
   local caps=$1 screen=$2 styled=0 kv plain row raw content glyph joined='' footer_re prompt_row=-1
   local leading_blank=1 placeholder_position=0 prompt_is_shell=0
@@ -1208,6 +1238,7 @@ fm_composer_extract_selected_content() {  # <caps> <screen>
   done <<EOF
 $caps
 EOF
+  _fm_composer_normalize_codex_animation_screen_var screen "$styled"
   plain=$(printf '%s\n' "$screen" | fm_composer_strip_ansi)
   _fm_composer_scan_screen "$plain" '' 1
   _fm_composer_select_cursorless "$plain" || return 1
@@ -1291,25 +1322,9 @@ EOF
   if [ -n "$cy" ]; then
     case "$cy" in *[!0-9]*) printf 'unknown'; return 0 ;; esac
   fi
+  _fm_composer_normalize_codex_animation_screen_var screen "$styled" "$cy"
   plain=$(printf '%s\n' "$screen" | fm_composer_strip_ansi)
   _fm_composer_scan_screen "$plain" "$cy"
-  # Strip ambient decoration only after the extractor proves Codex is showing
-  # its empty placeholder, then repeat ordinary structural selection on that
-  # same capture so a later modal or stale composer still cannot win.
-  if [ "$styled" = 1 ] && [ "$FM_COMPOSER_SCAN_BARE_ROW" -ge 1 ]; then
-    local g=$FM_COMPOSER_SCAN_BARE_ROW
-    if printf '%s\n' "$screen" | sed -n "$((g)), $((g + 2))p" |
-      fm_composer_strip_ghost codex-idle >/dev/null; then
-      screen=$(printf '%s\n' "$screen" | awk \
-        -v g="$g" -v codex_prompt="$FM_COMPOSER_CODEX_PROMPT_GLYPH" '
-        NR == g || NR == g + 2 { print " "; next }
-        NR == g + 1 { print codex_prompt; next }
-        { print }
-      ')
-      plain=$(printf '%s\n' "$screen" | fm_composer_strip_ansi)
-      _fm_composer_scan_screen "$plain" "$cy"
-    fi
-  fi
   if [ -n "$cy" ]; then
     # Cursor mode (tmux): the shape CONTAINING the cursor is the composer.
     if [ "$FM_COMPOSER_SCAN_UNSAFE" = 1 ]; then

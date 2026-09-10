@@ -87,10 +87,13 @@ SH
 # typed-animation contains actual input, including braille characters that must
 # never be treated as decoration.
 test_codex_animation_captures() {
-  local fixture screen expected caps actual
+  local fixture screen expected expected_content caps actual extracted
   for fixture in idle typed-animation; do
     screen=$(printf '%b' "$(cat "$ROOT/tests/fixtures/codex-animation/$fixture.capture")")
-    case "$fixture" in idle) expected=empty ;; *) expected=pending ;; esac
+    case "$fixture" in
+      idle) expected=empty; expected_content='' ;;
+      *) expected=pending; expected_content='preserve this draft ⠁ ⢀ ⠈ ⠂' ;;
+    esac
     # Herdr/Zellij have styling; tmux also supplies the actual composer row.
     for caps in styled=1 "$(printf 'styled=1\ncursor=1')"; do
       actual=$(fm_composer_classify_screen "$caps" "$screen" 2)
@@ -99,6 +102,9 @@ test_codex_animation_captures() {
     # Orca/cmux cannot prove decoration without styling.
     actual=$(fm_composer_classify_screen styled=0 "$(printf '%s\n' "$screen" | fm_composer_strip_ansi)")
     [ "$actual" != empty ] || fail "Codex $fixture: unstyled capture lost its safety guard"
+    extracted=$(fm_composer_extract_selected_content styled=1 "$screen")
+    [ "$extracted" = "$expected_content" ] \
+      || fail "Codex $fixture: expected extracted '$expected_content', got '$extracted'"
   done
   pass "real Codex animation is empty only with its styled placeholder; typed braille remains pending"
 }
@@ -111,6 +117,26 @@ test_codex_plain_draft_is_pending() {
   [ "$actual" = pending ] \
     || fail "Codex plain typed draft: expected pending, got '$actual'"
   pass "Codex plain typed draft remains pending"
+}
+
+test_codex_animation_preserves_typed_braille_and_rgb_text() {
+  local screen rgb_screen rgb actual extracted
+  screen=$(printf '%b' "$(cat "$ROOT/tests/fixtures/codex-animation/typed-animation.capture")")
+  screen=${screen/" preserve this draft "/}
+  actual=$(fm_composer_classify_screen "$(printf 'styled=1\ncursor=1')" "$screen" 2)
+  [ "$actual" = pending ] || fail "Codex typed braille: expected pending, got '$actual'"
+  extracted=$(fm_composer_extract_selected_content styled=1 "$screen")
+  [ "$extracted" = '⠁ ⢀ ⠈ ⠂' ] \
+    || fail "Codex typed braille: expected exact typed glyphs, got '$extracted'"
+
+  rgb=$'\033[38;2;143;147;156mRGB!?\033[39m'
+  rgb_screen=${screen/"⠁ ⢀ ⠈ ⠂"/"$rgb"}
+  actual=$(fm_composer_classify_screen "$(printf 'styled=1\ncursor=1')" "$rgb_screen" 2)
+  [ "$actual" = pending ] || fail "Codex RGB text: expected pending, got '$actual'"
+  extracted=$(fm_composer_extract_selected_content styled=1 "$rgb_screen")
+  [ "$extracted" = 'RGB!?' ] \
+    || fail "Codex RGB text: expected letters and symbols intact, got '$extracted'"
+  pass "Codex animation normalization preserves typed braille and RGB letters and symbols"
 }
 
 # --- fm_tmux_strip_ghost (pure) ---------------------------------------------
@@ -715,6 +741,7 @@ test_peek_output_is_escape_free() {
 
 test_codex_animation_captures
 test_codex_plain_draft_is_pending
+test_codex_animation_preserves_typed_braille_and_rgb_text
 
 test_strip_ghost_drops_dim_keeps_normal
 test_strip_ghost_handles_combined_and_boundary_codes

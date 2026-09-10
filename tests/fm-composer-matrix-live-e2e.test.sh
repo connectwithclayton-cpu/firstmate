@@ -38,6 +38,14 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 if [ -n "${FM_COMPOSER_CODEX_LAB_SESSION:-}" ]; then
   fm_live_gate opt-in FM_COMPOSER_CODEX_LIVE herdr codex
   . "$ROOT/bin/fm-composer-lib.sh"
+  codex_composer_region() {
+    local region_screen=$1 region_plain region_row
+    region_plain=$(printf '%s\n' "$region_screen" | fm_composer_strip_ansi)
+    _fm_composer_scan_screen "$region_plain" ''
+    region_row=$FM_COMPOSER_SCAN_BARE_ROW
+    [ "$region_row" -ge 1 ] || return 1
+    printf '%s\n' "$region_screen" | sed -n "$((region_row)), $((region_row + 2))p"
+  }
   lab_helper=${HERDR_LAB_HELPER:-$ROOT/bin/fm-herdr-lab.sh}
   version=$(codex --version)
   for case_name in IDLE TYPED; do
@@ -46,14 +54,24 @@ if [ -n "${FM_COMPOSER_CODEX_LAB_SESSION:-}" ]; then
     [ -n "$pane" ] || fail "$version: missing $pane_var for the prepared lab"
     screen=$("$lab_helper" run "$FM_COMPOSER_CODEX_LAB_SESSION" pane read "$pane" --source visible --format ansi) \
       || fail "$version: cannot capture $case_name"
+    [ -n "$screen" ] || fail "$version: empty $case_name capture"
     case "$case_name" in IDLE) expected=empty ;; *) expected=pending ;; esac
-    if [ "$case_name" = IDLE ]; then
-      sleep 0.2
-      next_screen=$("$lab_helper" run "$FM_COMPOSER_CODEX_LAB_SESSION" pane read "$pane" --source visible --format ansi)
-      [ "$screen" != "$next_screen" ] || fail "$version: idle animation is absent; live case would be vacuous"
-    fi
     actual=$(fm_composer_classify_screen styled=1 "$screen")
     [ "$actual" = "$expected" ] || fail "$version: $case_name expected $expected, got $actual"
+    if [ "$case_name" = IDLE ]; then
+      screen_region=$(codex_composer_region "$screen") \
+        || fail "$version: cannot isolate the first idle composer region"
+      sleep 0.2
+      next_screen=$("$lab_helper" run "$FM_COMPOSER_CODEX_LAB_SESSION" pane read "$pane" --source visible --format ansi) \
+        || fail "$version: cannot recapture IDLE"
+      [ -n "$next_screen" ] || fail "$version: empty IDLE recapture"
+      next_actual=$(fm_composer_classify_screen styled=1 "$next_screen")
+      [ "$next_actual" = empty ] || fail "$version: IDLE recapture expected empty, got $next_actual"
+      next_region=$(codex_composer_region "$next_screen") \
+        || fail "$version: cannot isolate the second idle composer region"
+      [ "$screen_region" != "$next_region" ] \
+        || fail "$version: idle composer animation is absent; live case would be vacuous"
+    fi
     pass "$version: real Codex $case_name composer classifies $expected"
   done
   exit 0
