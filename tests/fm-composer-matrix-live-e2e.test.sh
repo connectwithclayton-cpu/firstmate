@@ -32,6 +32,33 @@ set -u
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
+# A prepared guarded Herdr lab can refresh the Codex animation evidence
+# without needing tmux or provisioning any pane in the captain session.
+# Supply three real panes: animated idle, animated draft, and nonanimated draft.
+if [ -n "${FM_COMPOSER_CODEX_LAB_SESSION:-}" ]; then
+  fm_live_gate opt-in FM_COMPOSER_CODEX_LIVE herdr codex
+  . "$ROOT/bin/fm-composer-lib.sh"
+  lab_helper=${HERDR_LAB_HELPER:-$ROOT/bin/fm-herdr-lab.sh}
+  version=$(codex --version)
+  for case_name in IDLE TYPED STILL; do
+    pane_var="FM_COMPOSER_CODEX_LAB_$case_name"
+    pane=${!pane_var:-}
+    [ -n "$pane" ] || fail "$version: missing $pane_var for the prepared lab"
+    screen=$("$lab_helper" run "$FM_COMPOSER_CODEX_LAB_SESSION" pane read "$pane" --source visible --format ansi) \
+      || fail "$version: cannot capture $case_name"
+    case "$case_name" in IDLE) expected=empty ;; *) expected=pending ;; esac
+    if [ "$case_name" = IDLE ]; then
+      sleep 0.2
+      next_screen=$("$lab_helper" run "$FM_COMPOSER_CODEX_LAB_SESSION" pane read "$pane" --source visible --format ansi)
+      [ "$screen" != "$next_screen" ] || fail "$version: idle animation is absent; live case would be vacuous"
+    fi
+    actual=$(fm_composer_classify_screen styled=1 "$screen")
+    [ "$actual" = "$expected" ] || fail "$version: $case_name expected $expected, got $actual"
+    pass "$version: real Codex $case_name composer classifies $expected"
+  done
+  exit 0
+fi
+
 fm_live_gate opt-in FM_COMPOSER_MATRIX_LIVE tmux
 
 SOCKET="fm-cmx-live-$$"

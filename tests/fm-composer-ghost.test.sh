@@ -81,6 +81,28 @@ SH
   printf '%s\n' "$fb"
 }
 
+# Real Codex 0.154.0 captures, 2026-09-10: gpt-6-astra high in the guarded
+# Herdr lab, with OSC 10/11 palette replies supplied by a PTY relay.
+# Fixtures retain the composer and padding, with ESC/CR losslessly escaped.
+# typed-still disables tui.whimsy; both typed captures contain actual input,
+# including braille characters that must never be treated as decoration.
+test_codex_animation_captures() {
+  local fixture screen expected caps actual
+  for fixture in idle typed-animation typed-still; do
+    screen=$(printf '%b' "$(cat "$ROOT/tests/fixtures/codex-animation/$fixture.capture")")
+    case "$fixture" in idle) expected=empty ;; *) expected=pending ;; esac
+    # Herdr/Zellij have styling; tmux also supplies the actual composer row.
+    for caps in styled=1 "$(printf 'styled=1\ncursor=1')"; do
+      actual=$(fm_composer_classify_screen "$caps" "$screen" 2)
+      [ "$actual" = "$expected" ] || fail "Codex $fixture: expected $expected, got $actual"
+    done
+    # Orca/cmux cannot prove decoration without styling.
+    actual=$(fm_composer_classify_screen styled=0 "$(printf '%s\n' "$screen" | fm_composer_strip_ansi)")
+    [ "$actual" != empty ] || fail "Codex $fixture: unstyled capture lost its safety guard"
+  done
+  pass "real Codex animation is empty only with its styled placeholder; typed braille remains pending"
+}
+
 # --- fm_tmux_strip_ghost (pure) ---------------------------------------------
 
 test_strip_ghost_drops_dim_keeps_normal() {
@@ -680,6 +702,8 @@ test_peek_output_is_escape_free() {
   esac
   pass "fm-peek output is escape-free (no raw -e bytes reach firstmate context)"
 }
+
+test_codex_animation_captures
 
 test_strip_ghost_drops_dim_keeps_normal
 test_strip_ghost_handles_combined_and_boundary_codes
