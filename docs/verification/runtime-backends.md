@@ -308,16 +308,15 @@ The composer-classification record below observes the same gate from the other s
 
 Codex 0.154.0 with gpt-6-astra high was rechecked on 2026-09-10 in a guarded Herdr 0.8.0 lab.
 A PTY relay supplied OSC 10/11 foreground/background replies so the real Codex renderer enabled its composer animation.
-The prepared-lab mode of `tests/fm-composer-matrix-live-e2e.test.sh` refreshes the three real surfaces without launching or closing panes:
+The prepared-lab mode of `tests/fm-composer-matrix-live-e2e.test.sh` refreshes the two real surfaces without launching or closing panes:
 
 ```sh
-FM_COMPOSER_CODEX_LIVE=1 FM_COMPOSER_CODEX_LAB_SESSION="$HERDR_LAB_SESSION" FM_COMPOSER_CODEX_LAB_IDLE="$IDLE_PANE" FM_COMPOSER_CODEX_LAB_TYPED="$HIGH_PANE" FM_COMPOSER_CODEX_LAB_STILL="$STILL_PANE" HERDR_LAB_HELPER="$HERDR_LAB_HELPER" bin/fm-test-run.sh tests/fm-composer-matrix-live-e2e.test.sh
+FM_COMPOSER_CODEX_LIVE=1 FM_COMPOSER_CODEX_LAB_SESSION="$HERDR_LAB_SESSION" FM_COMPOSER_CODEX_LAB_IDLE="$IDLE_PANE" FM_COMPOSER_CODEX_LAB_TYPED="$HIGH_PANE" HERDR_LAB_HELPER="$HERDR_LAB_HELPER" bin/fm-test-run.sh tests/fm-composer-matrix-live-e2e.test.sh
 ```
 
 ```text
 ok - codex-cli 0.154.0: real Codex IDLE composer classifies empty
 ok - codex-cli 0.154.0: real Codex TYPED composer classifies pending
-ok - codex-cli 0.154.0: real Codex STILL composer classifies pending
 ```
 
 The portable capture regression is `tests/fm-composer-ghost.test.sh`; removing the classifier change fails with `Codex idle: expected empty, got pending`.

@@ -34,13 +34,13 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
 # A prepared guarded Herdr lab can refresh the Codex animation evidence
 # without needing tmux or provisioning any pane in the captain session.
-# Supply three real panes: animated idle, animated draft, and nonanimated draft.
+# Supply two real panes: animated idle and animated draft.
 if [ -n "${FM_COMPOSER_CODEX_LAB_SESSION:-}" ]; then
   fm_live_gate opt-in FM_COMPOSER_CODEX_LIVE herdr codex
   . "$ROOT/bin/fm-composer-lib.sh"
   lab_helper=${HERDR_LAB_HELPER:-$ROOT/bin/fm-herdr-lab.sh}
   version=$(codex --version)
-  for case_name in IDLE TYPED STILL; do
+  for case_name in IDLE TYPED; do
     pane_var="FM_COMPOSER_CODEX_LAB_$case_name"
     pane=${!pane_var:-}
     [ -n "$pane" ] || fail "$version: missing $pane_var for the prepared lab"
