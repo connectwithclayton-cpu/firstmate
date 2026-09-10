@@ -103,6 +103,16 @@ test_codex_animation_captures() {
   pass "real Codex animation is empty only with its styled placeholder; typed braille remains pending"
 }
 
+test_codex_plain_draft_is_pending() {
+  local screen actual
+  screen=$(printf '\033[48;2;65;69;76m \033[0m\n\033[1;48;2;65;69;76m%s\033[0m\033[48;2;65;69;76m preserve this draft \033[0m\n\033[48;2;65;69;76m \033[0m' \
+    "$FM_COMPOSER_CODEX_PROMPT_GLYPH")
+  actual=$(fm_composer_classify_screen "$(printf 'styled=1\ncursor=1')" "$screen" 1)
+  [ "$actual" = pending ] \
+    || fail "Codex plain typed draft: expected pending, got '$actual'"
+  pass "Codex plain typed draft remains pending"
+}
+
 # --- fm_tmux_strip_ghost (pure) ---------------------------------------------
 
 test_strip_ghost_drops_dim_keeps_normal() {
@@ -704,6 +714,7 @@ test_peek_output_is_escape_free() {
 }
 
 test_codex_animation_captures
+test_codex_plain_draft_is_pending
 
 test_strip_ghost_drops_dim_keeps_normal
 test_strip_ghost_handles_combined_and_boundary_codes
