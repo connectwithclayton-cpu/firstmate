@@ -1,0 +1,29 @@
+Firstmate closed-set watcher live validation
+target_commit=350fe312a135b75cf0c778c56ded64e728a45eec
+live_pr=https://github.com/kunchenguid/firstmate/pull/4119
+
+case=before unknown_key=before-pr
+relevant metadata:
+1:unexpected_metadata_key=value
+9:pr=https://github.com/kunchenguid/firstmate/pull/4119
+10:pr_head=7c25ecbdb0c7983be2794384ac695d6862df4218
+$ FM_HOME=<isolated-before> FM_CHECK_INTERVAL=0 bin/fm-watch.sh
+check: rejected unauthenticated state checks: /Users/claytonjohnson/.no-mistakes/worktrees/dad68ef8e401/01M25WW6X42RBGME70PJXS8WJT/.nm-live-pr-closed-set.yzTnXK/before/home/state/closedsetbefore.check.sh
+exit=0
+generic_rejection=yes
+merged_notification=no
+removed_malformed_mode_message=no
+
+case=after unknown_key=after-pr
+relevant metadata:
+8:pr=https://github.com/kunchenguid/firstmate/pull/4119
+9:pr_head=7c25ecbdb0c7983be2794384ac695d6862df4218
+10:unexpected_metadata_key=value
+$ FM_HOME=<isolated-after> FM_CHECK_INTERVAL=0 bin/fm-watch.sh
+check: rejected unauthenticated state checks: /Users/claytonjohnson/.no-mistakes/worktrees/dad68ef8e401/01M25WW6X42RBGME70PJXS8WJT/.nm-live-pr-closed-set.yzTnXK/after/home/state/closedsetafter.check.sh
+exit=0
+generic_rejection=yes
+merged_notification=no
+removed_malformed_mode_message=no
+
+OVERALL=PASS

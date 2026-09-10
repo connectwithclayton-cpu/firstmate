@@ -1,0 +1,48 @@
+Firstmate PR poll metadata-order live validation
+target_commit=350fe312a135b75cf0c778c56ded64e728a45eec
+base_commit=34bd41896e6af59607cef4097d5e07fcb1b80891
+live_pr=https://github.com/kunchenguid/firstmate/pull/4119
+
+SCENARIO 1 SETUP: arm the real product against a live merged GitHub PR
+$ FM_HOME=<isolated> bin/fm-pr-check.sh livepr4119 https://github.com/kunchenguid/firstmate/pull/4119
+armed: state/livepr4119.check.sh
+exit=0
+persisted PR fields after live head lookup:
+8:pr=https://github.com/kunchenguid/firstmate/pull/4119
+9:pr_head=7c25ecbdb0c7983be2794384ac695d6862df4218
+live_head_recorded=yes
+artifact modes: check=600 data=600 registration=600
+
+SCENARIO 2: same-URL re-arm while the live head lookup is unauthenticated
+direct_invalid_credential_head_lookup_exit=1 (nonzero proves lookup unavailable)
+$ GH_TOKEN=<intentionally-invalid> FM_HOME=<isolated> bin/fm-pr-check.sh livepr4119 https://github.com/kunchenguid/firstmate/pull/4119
+armed: state/livepr4119.check.sh
+exit=0
+stale_head_preserved=no
+target_validator_after_head_omission=0 (expected 0)
+
+SCENARIO 1 CONTINUED: reproduce the exact persisted ordering emitted by relaunch
+relaunch-relevant metadata order:
+8:pr=https://github.com/kunchenguid/firstmate/pull/4119
+9:control_relaunch_tx=4242.20260910T120000Z.77
+base_validator_exit=1 (expected 1)
+target_validator_exit=0 (expected 0)
+
+SCENARIO 3: adversarial metadata and private-file boundaries
+unknown_key_before_pr_exit=1 (expected 1)
+unknown_key_after_pr_exit=1 (expected 1)
+duplicate_pr_head_exit=1 (expected 1)
+malformed_pr_head_exit=1 (expected 1)
+check_mode_0644_exit=1 (expected 1)
+check_mode_0600_exit=0 (expected 0)
+valid_pr_head_before_pr_exit=0 (expected 0)
+
+SCENARIO 1 RESULT: run the real watcher and real gh lookup without re-arming
+$ FM_HOME=<isolated> FM_CHECK_INTERVAL=0 bin/fm-watch.sh
+check: /Users/claytonjohnson/.no-mistakes/worktrees/dad68ef8e401/01M25WW6X42RBGME70PJXS8WJT/.nm-live-pr-order.JI8v6i/home/state/livepr4119.check.sh: merged
+exit=0
+unexpected_authentication_rejection=no
+merge_notification_marker=present
+poll_artifacts_retired_after_notification=yes
+
+OVERALL=PASS
