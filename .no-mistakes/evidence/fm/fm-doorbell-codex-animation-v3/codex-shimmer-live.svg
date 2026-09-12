@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1800" height="1510" viewBox="0 0 1800 1510">
+  <rect width="1800" height="1510" fill="#090d12"/>
+  <text x="70" y="78" fill="#f3f7fb" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="38" font-weight="700">Live Codex shimmer doorbell validation</text>
+  <text x="70" y="116" fill="#8796a5" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="19">Codex 0.154.0 · gpt-6-astra high · Herdr isolated lab · target cfe02d9</text>
+  <rect x="1480" y="54" width="250" height="54" rx="27" fill="#123d2f"/>
+  <text x="1605" y="89" text-anchor="middle" fill="#5de2aa" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="21" font-weight="700">LIVE PASS</text>
+
+  <rect x="55" y="150" width="1690" height="370" rx="18" fill="#111821" stroke="#263340"/>
+  <text x="85" y="194" fill="#73b7ff" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="23" font-weight="700">1 · Non-vacuous animated idle surface</text>
+  <text x="85" y="226" fill="#9bacbb" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="17">Two real pane captures differ while both retain the empty placeholder.</text>
+  <text x="85" y="269" fill="#5de2aa" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="16" font-weight="700">FRAME A</text>
+  <rect x="80" y="286" width="1640" height="91" rx="10" fill="#080c11"/>
+  <text font-family="SFMono-Regular, Menlo, DejaVu Sans Mono, monospace" font-size="16" xml:space="preserve"><tspan x="100" y="313" fill="#d8dee9">    ⠈                    ⢀  ⠈   ⠁                ⠐      ⡀   ⠄             ⢀        ⠄   ⠈   ⠠ </tspan><tspan x="100" y="337" fill="#d8dee9">›⠁Ask Codex to do anything   ⠈            ⠁                           ⠄    ⠂         ⠐ ⠁     </tspan><tspan x="100" y="361" fill="#d8dee9">        ⠐                                           ⠠ ⠄⠂                   ⠈   ⠄             </tspan></text>
+  <text x="85" y="418" fill="#5de2aa" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="16" font-weight="700">FRAME B · 200 ms later</text>
+  <rect x="80" y="435" width="1640" height="66" rx="10" fill="#080c11"/>
+  <text font-family="SFMono-Regular, Menlo, DejaVu Sans Mono, monospace" font-size="16" xml:space="preserve"><tspan x="100" y="461" fill="#d8dee9">⠁   ⠈         ⠄          ⢀  ⠈           ⠁               ⡀ ⠂ ⠄             ⢀        ⠄  ⠄⠈   ⠠ </tspan><tspan x="100" y="485" fill="#d8dee9">› Ask Codex to do anything⡀  ⠈     ⠈ ⠂  ⠁ ⠁                           ⠄             ⠁⠐       </tspan><tspan x="100" y="509" fill="#d8dee9">        ⠐        ⠄        ⠄         ⠠        ⢀      ⠠⡀⠄                             ⠂        </tspan></text>
+
+  <rect x="55" y="545" width="1690" height="390" rx="18" fill="#111821" stroke="#263340"/>
+  <text x="85" y="590" fill="#73b7ff" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="23" font-weight="700">2 · Idle worker received the real doorbell without relaunch</text>
+  <text x="85" y="626" fill="#5de2aa" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="18" font-weight="700">fm-send exit 0 · no skipped/failed notice · inbox 001.msg moved to handled</text>
+  <text x="85" y="658" fill="#9bacbb" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="17">Relay PID 53042 → 53042; child Codex PID 53062 remained alive.</text>
+  <rect x="80" y="685" width="1640" height="214" rx="10" fill="#080c11"/>
+  <text font-family="SFMono-Regular, Menlo, DejaVu Sans Mono, monospace" font-size="16" xml:space="preserve"><tspan x="100" y="716" fill="#d8dee9">• Ran mv home/state/live-idle.inbox/001.msg home/state/live-idle.inbox/handled/001.msg</tspan><tspan x="100" y="740" fill="#d8dee9">  └ (no output)</tspan><tspan x="100" y="764" fill="#d8dee9"></tspan><tspan x="100" y="788" fill="#d8dee9">─────────────────────────────────────────────────────────────────────────────────────────────</tspan><tspan x="100" y="812" fill="#d8dee9"></tspan><tspan x="100" y="836" fill="#d8dee9">• DOORBELL_RECEIVED</tspan></text>
+
+  <rect x="55" y="960" width="1690" height="315" rx="18" fill="#111821" stroke="#263340"/>
+  <text x="85" y="1005" fill="#73b7ff" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="23" font-weight="700">3 · Typed braille draft stayed pending and untouched</text>
+  <text x="85" y="1041" fill="#f4bd62" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="18" font-weight="700">fm-send exit 0 · explicit “doorbell skipped” · queued 1 · handled 0</text>
+  <text x="85" y="1073" fill="#9bacbb" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="17">Relay PID 53051 → 53051; no Firstmate doorbell prompt appeared in the pane.</text>
+  <rect x="80" y="1098" width="1640" height="87" rx="10" fill="#080c11"/>
+  <text font-family="SFMono-Regular, Menlo, DejaVu Sans Mono, monospace" font-size="16" xml:space="preserve"><tspan x="100" y="1127" fill="#d8dee9">⠁   ⠈         ⠄          ⢀              ⠁          ⠐                      ⢀ ⠄      ⠄  ⠄</tspan><tspan x="100" y="1151" fill="#d8dee9">›⠁preserve this draft ⠁ ⢀ ⠈ ⠂      ⠈ ⠂  ⠁                                  ⠂         ⠐</tspan><tspan x="100" y="1175" fill="#d8dee9">                 ⠄                             ⢀    ⠠  ⠂</tspan></text>
+  <text font-family="SFMono-Regular, Menlo, DejaVu Sans Mono, monospace" font-size="15" xml:space="preserve"><tspan x="100" y="1222" fill="#f4bd62">fm-send: doorbell skipped (composer visibly holds pending text); the steer is durably recorded at /Users/claytonjohnson/.no-mistakes/worktrees/dad68ef8e401/01</tspan></text>
+
+  <rect x="55" y="1300" width="1690" height="155" rx="18" fill="#111821" stroke="#263340"/>
+  <text x="85" y="1345" fill="#73b7ff" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="23" font-weight="700">Behavioral regression: base versus target</text>
+  <text font-family="SFMono-Regular, Menlo, DejaVu Sans Mono, monospace" font-size="17" xml:space="preserve"><tspan x="100" y="1384" fill="#d8dee9">base idle=pending typed=pending typed_content=preserve this draft ⠁ ⢀ ⠈ ⠂ ⠈ ⠠⠐</tspan><tspan x="100" y="1408" fill="#d8dee9">target idle=empty typed=pending typed_content=preserve this draft ⠁ ⢀ ⠈ ⠂</tspan></text>
+  <text x="85" y="1438" fill="#9bacbb" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="16">Base misclassified idle as pending and leaked shimmer into typed extraction; target reports empty and preserves exact draft text.</text>
+  <text x="70" y="1490" fill="#647482" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="15">Rendered mechanically from this run’s live pane captures and product state; no mocked UI or recorded fixture is used in sections 1–3.</text>
+</svg>

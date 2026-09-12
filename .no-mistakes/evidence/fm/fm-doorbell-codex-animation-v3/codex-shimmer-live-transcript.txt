@@ -1,0 +1,48 @@
+LIVE PRODUCT TRANSCRIPT
+commit: cfe02d9fe7ab49f4b036be29e94361b9a3c591ac
+product: Codex 0.154.0 / gpt-6-astra high in isolated Herdr session
+
+SCENARIO 1 — animated idle doorbell delivery
+command: bin/fm-send.sh live-idle 'This is a delivery test. Reply exactly DOORBELL_RECEIVED. Do not change files.'
+exit: 0
+send output:
+WARNING: watcher still down (same stale episode; last beat: never, grace 300s) - full banner already printed this episode.
+observable durable state: live-idle.inbox/001.msg moved to handled/001.msg
+relay process identity: 53042 before, 53042 after
+child Codex process: 53062 remained alive
+real pane excerpt:
+• Ran mv home/state/live-idle.inbox/001.msg home/state/live-idle.inbox/handled/001.msg
+  └ (no output)
+
+─────────────────────────────────────────────────────────────────────────────────────────────
+
+• DOORBELL_RECEIVED
+
+SCENARIO 2 — typed draft adversarial guard
+command: bin/fm-send.sh live-typed 'Do not submit the draft; this tests the pending guard.'
+exit: 0
+send output:
+WARNING: watcher still down (same stale episode; last beat: never, grace 300s) - full banner already printed this episode.
+fm-send: doorbell skipped (composer visibly holds pending text); the steer is durably recorded at /Users/claytonjohnson/.no-mistakes/worktrees/dad68ef8e401/01M2AR7VHRK21DBX8RTG6TTA25/.live-codex-doorbell.gAvW9j/probe/home/state/live-typed.inbox/001.msg and the watcher will re-ring
+observable durable state: queued=1, handled=0
+relay process identity: 53051 before, 53051 after
+doorbell prompt visible in pane: no
+real pane excerpt:
+⠁   ⠈         ⠄          ⢀              ⠁          ⠐                      ⢀ ⠄      ⠄  ⠄
+›⠁preserve this draft ⠁ ⢀ ⠈ ⠂      ⠈ ⠂  ⠁                                  ⠂         ⠐
+                 ⠄                             ⢀    ⠠  ⠂
+
+NON-VACUOUS ANIMATION CHECK
+idle frame A and frame B differ: yes
+live guard output:
+FM_TEST_BEGIN 2026-09-12T13:30:34Z tests/fm-composer-matrix-live-e2e.test.sh family=live-harness-optin expected_gate_skip=live-capability
+ok - codex-cli 0.154.0: real Codex IDLE composer classifies empty
+ok - codex-cli 0.154.0: real Codex TYPED composer classifies pending
+FM_TEST_END 2026-09-12T13:30:35Z tests/fm-composer-matrix-live-e2e.test.sh exit=0 duration_ms=715 gate_skip=false
+FM_TEST_SUMMARY total=1 failed=0 skipped_gate=0 duration_ms=791
+FM_TEST_SUMMARY_FAMILY family=live-harness-optin count=1 duration_ms=715 failed=0
+FM_TEST_SLOWEST rank=1 script=tests/fm-composer-matrix-live-e2e.test.sh duration_ms=715
+
+BASE/TARGET BEHAVIORAL PROBE
+base idle=pending typed=pending typed_content=preserve this draft ⠁ ⢀ ⠈ ⠂ ⠈ ⠠⠐
+target idle=empty typed=pending typed_content=preserve this draft ⠁ ⢀ ⠈ ⠂
