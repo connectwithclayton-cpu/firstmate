@@ -3,9 +3,9 @@
 #
 # A harness fills an otherwise-empty composer with de-emphasised ghost text that a
 # plain pane capture cannot tell apart from human input, so the composer reader
-# saw an idle pane as holding pending input. Two rendering styles are covered by
-# the one shared ANSI-aware owner (fm_composer_strip_ghost, bin/fm-composer-lib.sh,
-# reached here through the fm_tmux_strip_ghost thin adapter):
+# saw an idle pane as holding pending input. The default extractor covers two
+# styles through the one shared ANSI-aware owner (fm_composer_strip_ghost,
+# bin/fm-composer-lib.sh, reached through the fm_tmux_strip_ghost thin adapter):
 #   - DIM/FAINT (SGR 2): claude's rotating prompt suggestion, codex's idle tip.
 #   - a dark/muted TRUECOLOR foreground: grok's placeholder/hint text.
 # These tests pin:
@@ -16,6 +16,8 @@
 #   3. The tmux reader structurally scans every row of a multi-row composer.
 #   4. The human/LLM-facing capture path (fm-peek.sh) stays PLAIN - no escape codes
 #      ever reach firstmate's context.
+#   5. Exact three-row Codex animation is stripped while normal input, including
+#      typed braille and RGB text, remains pending and extractable.
 set -u
 
 # shellcheck source=tests/lib.sh

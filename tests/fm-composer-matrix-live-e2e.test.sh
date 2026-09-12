@@ -6,7 +6,7 @@
 # built entirely from vendor-rendered signals, so per
 # .agents/skills/firstmate-coding-guidelines it must be proven against the
 # REAL harnesses: a stub can only confirm the assumption already written into
-# the stub. This guard launches every INSTALLED verified harness idle in an
+# the stub. Default mode launches every INSTALLED verified harness idle in an
 # isolated tmux server and requires the real fm_tmux_composer_state to reach
 # `empty`, failing loudly with the harness name and version. It also proves:
 #   - the strict blank-row posture live: a plain shell pane with a blank
@@ -16,15 +16,18 @@
 #     report a delivered send, and a real claude-in-zellij `dump-screen
 #     --ansi` capture must classify empty through the zellij thin adapter.
 #
-# Run explicitly with FM_COMPOSER_MATRIX_LIVE=1. No prompt is ever submitted
-# to any harness, so no model tokens are spent. An absent harness is reported
-# explicitly and skipped; a run that verified nothing fails rather than
-# passing vacuously. Refresh docs/verification/runtime-backends.md ("Composer
-# classification matrix") from this guard's output after any harness upgrade.
+# Run default mode with FM_COMPOSER_MATRIX_LIVE=1. No prompt is submitted, so no
+# model tokens are spent. An absent harness is reported and skipped; a run that
+# verified nothing fails. Refresh docs/verification/runtime-backends.md
+# ("Composer classification matrix") from this guard after a harness upgrade.
 #
-# Folder trust: harnesses are launched with the repo root as cwd, which the
-# operator's machine has normally already trusted; a trust dialog is a real
-# unreadable-composer state and correctly fails that harness's check.
+# Codex-animation-only mode instead reuses prepared idle and draft Herdr panes.
+# A nonempty FM_COMPOSER_CODEX_LAB_SESSION selects it; FM_COMPOSER_CODEX_LIVE=1
+# opts in, and the verification record owns the complete command and pane inputs.
+#
+# In default mode, harnesses launch with the repo root as cwd, which the
+# operator's machine has normally trusted; a trust dialog is an unreadable
+# composer state and correctly fails that harness's check.
 set -u
 
 # shellcheck source=tests/lib.sh

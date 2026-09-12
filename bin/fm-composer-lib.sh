@@ -80,12 +80,11 @@
 # GHOST/PLACEHOLDER TEXT (task afk-herdr-false-pending): a harness fills an
 # otherwise-empty composer with de-emphasized ghost text - claude's rotating
 # prompt suggestion, codex's idle suggestion, grok's placeholder, or cursor's
-# idle placeholder - which a
-# plain capture cannot tell apart from text a human typed.
-# fm_composer_strip_ghost is the ONE ANSI-aware extractor of "real typed
-# content": it drops every de-emphasized run - dim/faint (SGR 2) AND a
-# dark/muted TRUECOLOR foreground - and keeps only normal-intensity,
-# normally-coloured text.
+# idle placeholder - which a plain capture cannot tell apart from text a human
+# typed. By default, fm_composer_strip_ghost drops every de-emphasized run -
+# dim/faint (SGR 2) AND a dark/muted TRUECOLOR foreground - and keeps only
+# normal-intensity, normally-coloured text. Its `codex-animation` mode instead
+# normalizes an exact styled three-row region as documented on the function.
 #
 # UNICODE WHITESPACE (issue #1988; open PRs #1995/#2047 target the same
 # defect and #1995's naming is adopted here so the implementations converge):
@@ -170,11 +169,11 @@ fm_composer_normalize_trim_var() {  # <varname>
   printf -v "$__fmnt_name" '%s' "$__fmnt_text"
 }
 
-# fm_composer_strip_ghost [codex-animation]: the ONE fleet-wide ANSI-aware extractor of "real typed
-# content" from a captured, styled composer row. Reads the styled line on stdin
-# (from `tmux capture-pane -e`, `herdr pane read --format ansi`, or
-# `zellij action dump-screen --ansi`) and prints the
-# plain, non-ghost text on stdout, dropping:
+# fm_composer_strip_ghost [codex-animation]: the ONE fleet-wide ANSI-aware
+# extractor of "real typed content" from a styled capture. With no argument it
+# reads styled rows on stdin (from `tmux capture-pane -e`, `herdr pane read
+# --format ansi`, or `zellij action dump-screen --ansi`) and prints their plain,
+# non-ghost text on stdout, dropping:
 #   - dim/faint runs (SGR 2): how claude and codex render ghost/suggestion text.
 #     A reset (SGR 0) or normal-intensity (SGR 22) ends a dim run.
 #   - dark/muted TRUECOLOR foreground runs (SGR 38;2;r;g;b or the colon form
@@ -194,13 +193,20 @@ fm_composer_normalize_trim_var() {  # <varname>
 # the tightest margin over the 128 default in the fleet. Above ~150 that glyph is
 # stripped as ghost text, which is why the bare-glyph fallback below must also
 # recognise every agent glyph from the UNSTRIPPED plain row.
-# The dim/faint and dark-foreground states are tracked together as "de-emphasis";
-# codes are processed left to right within a sequence, so "ESC[0;2m" reads as dim.
-# LC_ALL=C makes awk walk bytes, so multibyte glyphs (e.g. ❯) and de-emphasised
-# runs alike pass through or drop intact without locale-dependent classes.
+# In default mode the dim/faint and dark-foreground states are tracked together
+# as "de-emphasis"; codes are processed left to right within a sequence, so
+# "ESC[0;2m" reads as dim. LC_ALL=C makes awk walk bytes, so multibyte glyphs
+# (e.g. ❯) and de-emphasised runs alike pass through or drop intact without
+# locale-dependent classes.
+#
+# `codex-animation` requires exactly three rows sharing one TRUECOLOR background:
+# decoration-only outer rows around a Codex prompt row. Any dim middle-row text
+# must be the exact placeholder; when it is absent, the row must contain real
+# input. A match strips only padding, the placeholder, and separately RGB-painted
+# single-dot braille while preserving normal input, including typed braille. A
+# mismatch exits nonzero without output so the caller retains the original screen
+# for conservative classification.
 fm_composer_strip_ghost() {
-  # codex-animation accepts a three-row Codex composer with background-painted
-  # padding and keeps normally rendered input, including typed braille.
   LC_ALL=C awk -v codex_animation="${1:-}" \
     -v codex_prompt="$FM_COMPOSER_CODEX_PROMPT_GLYPH" \
     -v lumamax="${FM_COMPOSER_GHOST_LUMA_MAX:-128}" '
@@ -1209,6 +1215,8 @@ _fm_composer_select_cursorless() {
   [ -n "$FM_COMPOSER_SELECTED_KIND" ]
 }
 
+# Normalize the exact animated region around the bottom-most bare prompt.
+# Leave unstyled or nonmatching screens unchanged so classification stays conservative.
 _fm_composer_normalize_codex_animation_screen_var() {  # <varname> <styled> [cursor-row]
   local __fmc_name=$1 __fmc_styled=$2 __fmc_cy=${3:-} __fmc_screen=${!1}
   local __fmc_plain __fmc_g __fmc_candidate
