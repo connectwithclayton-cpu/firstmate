@@ -33,7 +33,7 @@ set -u
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
 # A prepared guarded Herdr lab can refresh the Codex animation evidence
-# without needing tmux or provisioning any pane in the captain session.
+# without needing tmux or provisioning any pane in the operator session.
 # Supply two real panes: animated idle and animated draft.
 if [ -n "${FM_COMPOSER_CODEX_LAB_SESSION:-}" ]; then
   fm_live_gate opt-in FM_COMPOSER_CODEX_LIVE herdr codex
